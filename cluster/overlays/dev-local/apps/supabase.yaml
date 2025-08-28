@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: supabase
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/supabase-community/supabase-kubernetes.git
+    targetRevision: main
+    path: charts/supabase
+    helm:
+      releaseName: supabase
+      values: |
+        postgresql:
+          auth:
+            username: supabase_admin
+            password: supabase_pass
+            database: supabase
+        storage:
+          enabled: true
+          externalS3:
+            enabled: true
+            endpoint: http://minio.tools.svc.cluster.local:9000
+            accessKey: minioadmin
+            secretKey: minioadmin123
+            bucket: dev-local
+        studio:
+          enabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: supabase
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
