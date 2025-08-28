@@ -9,14 +9,51 @@ spec:
     repoURL: https://github.com/supabase-community/supabase-kubernetes.git
     targetRevision: main
     path: charts/supabase
+    spec:
+  source:
+    repoURL: https://github.com/supabase-community/supabase-kubernetes.git
+    targetRevision: main
+    path: charts/supabase
     helm:
       releaseName: supabase
       values: |
+        # --- Postgres varsayılan kimlik ---
         postgresql:
           auth:
             username: supabase_admin
             password: supabase_pass
             database: supabase
+
+          # (İsteğe bağlı) Kalıcılığı kapatmak istersen dev için:
+          # primary:
+          #   persistence:
+          #     enabled: false
+          # volumePermissions:
+          #   enabled: true
+
+        # --- Studio açık ---
+        studio:
+          enabled: true
+
+        # --- REST (PostgREST) DB bağlantısı (servis FQDN'i) ---
+        rest:
+          enabled: true
+          extraEnv:
+            - name: PGRST_DB_URI
+              value: postgres://supabase_admin:supabase_pass@supabase-supabase-db.supabase.svc.cluster.local:5432/supabase
+
+        # --- Auth (GoTrue) temel JWT ayarı + public URL'ler ---
+        auth:
+          enabled: true
+          extraEnv:
+            - name: GOTRUE_JWT_SECRET
+              value: dev-local-jwt-secret-change-me
+            - name: GOTRUE_SITE_URL
+              value: http://localhost:3333
+            - name: SUPABASE_PUBLIC_URL
+              value: http://localhost:3333
+
+        # --- Storage'ı MinIO'ya bağla ---
         storage:
           enabled: true
           externalS3:
@@ -25,8 +62,32 @@ spec:
             accessKey: minioadmin
             secretKey: minioadmin123
             bucket: dev-local
-        studio:
-          enabled: true
+
+        # --- Realtime (opsiyonel, şimdilik kapalı da başlayabilirsin) ---
+        realtime:
+          enabled: false
+
+        # --- Functions/Edge (opsiyonel, şimdilik kapalı) ---
+        functions:
+          enabled: false
+
+        # --- Analytics/Vector/Meta/Kong (şimdilik kapatalım, min. set) ---
+        analytics:
+          enabled: false
+        vector:
+          enabled: false
+        meta:
+          enabled: false
+        kong:
+          enabled: false
+
+        # --- Global min ayarlar (bazı imajlarda ortak kullanılır) ---
+        global:
+          env:
+            - name: JWT_SECRET
+              value: dev-local-jwt-secret-change-me
+            - name: SUPABASE_PUBLIC_URL
+              value: http://localhost:3333
   destination:
     server: https://kubernetes.default.svc
     namespace: supabase
