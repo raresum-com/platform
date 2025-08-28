@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/raresum-com/platform.git # birazdan kendi repo URL'inle değiştireceksin
+    repoURL: https://github.com/raresum-com/platform.git
     targetRevision: main
     path: cluster/overlays/dev-local
   destination:
