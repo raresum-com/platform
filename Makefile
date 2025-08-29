@@ -12,7 +12,7 @@ MINIO_API_LOCAL_PORT := 9000
 MINIO_API_TARGET     := 9000
 
 MINIO_UI_LOCAL_PORT := 9090
-MINIO_UI_TARGET     := 9090
+MINIO_UI_TARGET     := 9001
 
 # k3d cluster name
 K3D_CLUSTER_NAME := raresum
@@ -52,23 +52,24 @@ svc_heuristic = SVC=$$(kubectl -n $(SUPA_NS) get svc -l '$(2)' -o jsonpath='{.it
 # ===== Port-forwards =====
 .PHONY: supabase-ui
 supabase-ui:
-	@$(call svc_heuristic, supabase-supabase-studio supabase-studio studio, app.kubernetes.io/name=supabase-studio) \
-	if [ -n "$$SVC" ]; then \
-	  SVCPORT=$$(kubectl -n $(SUPA_NS) get svc $$SVC -o jsonpath='{.spec.ports[0].port}'); \
-	  echo "[OK] svc/$$SVC -> localhost:$(SUPABASE_STUDIO_LOCAL_PORT) (remote:$$SVCPORT)"; \
-	  exec kubectl -n $(SUPA_NS) port-forward svc/$$SVC $(SUPABASE_STUDIO_LOCAL_PORT):$$SVCPORT; \
+	# Prefer a running pod to avoid service selecting a non-ready pod \
+	POD=$$(kubectl -n $(SUPA_NS) get pods -l 'app.kubernetes.io/name=supabase-studio' --field-selector=status.phase==Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null); \
+	if [ -n "$$POD" ]; then \
+	  echo "[OK] pod/$$POD -> localhost:$(SUPABASE_STUDIO_LOCAL_PORT) (remote:$(SUPABASE_POD_TARGET))"; \
+	  exec kubectl -n $(SUPA_NS) port-forward pod/$$POD $(SUPABASE_STUDIO_LOCAL_PORT):$(SUPABASE_POD_TARGET); \
 	fi; \
 	DEP=$$(kubectl -n $(SUPA_NS) get deploy -l 'app.kubernetes.io/name=supabase-studio' -o jsonpath='{.items[0].metadata.name}' 2>/dev/null); \
 	if [ -n "$$DEP" ]; then \
 	  echo "[OK] deploy/$$DEP -> localhost:$(SUPABASE_STUDIO_LOCAL_PORT) (remote:$(SUPABASE_POD_TARGET))"; \
 	  exec kubectl -n $(SUPA_NS) port-forward deploy/$$DEP $(SUPABASE_STUDIO_LOCAL_PORT):$(SUPABASE_POD_TARGET); \
 	fi; \
-	POD=$$(kubectl -n $(SUPA_NS) get pods -l 'app.kubernetes.io/name=supabase-studio' -o jsonpath='{.items[0].metadata.name}' 2>/dev/null); \
-	if [ -n "$$POD" ]; then \
-	  echo "[OK] pod/$$POD -> localhost:$(SUPABASE_STUDIO_LOCAL_PORT) (remote:$(SUPABASE_POD_TARGET))"; \
-	  exec kubectl -n $(SUPA_NS) port-forward pod/$$POD $(SUPABASE_STUDIO_LOCAL_PORT):$(SUPABASE_POD_TARGET); \
+	$(call svc_heuristic, supabase-supabase-studio supabase-studio studio, app.kubernetes.io/name=supabase-studio) \
+	if [ -n "$$SVC" ]; then \
+	  SVCPORT=$$(kubectl -n $(SUPA_NS) get svc $$SVC -o jsonpath='{.spec.ports[0].port}'); \
+	  echo "[OK] svc/$$SVC -> localhost:$(SUPABASE_STUDIO_LOCAL_PORT) (remote:$$SVCPORT)"; \
+	  exec kubectl -n $(SUPA_NS) port-forward svc/$$SVC $(SUPABASE_STUDIO_LOCAL_PORT):$$SVCPORT; \
 	fi; \
-	echo "[ERR] Studio için service/deploy/pod bulunamadı."; exit 1
+	echo "[ERR] Studio için running pod/service/deploy bulunamadı."; exit 1
 
 .PHONY: supabase-db
 supabase-db:
@@ -91,7 +92,7 @@ minio-api:
 
 .PHONY: minio-ui
 minio-ui:
-	kubectl -n $(MINIO_NS) port-forward svc/minio-console $(MINIO_UI_LOCAL_PORT):$(MINIO_UI_TARGET)
+	kubectl -n $(MINIO_NS) port-forward svc/minio $(MINIO_UI_LOCAL_PORT):$(MINIO_UI_TARGET)
 
 # ===== Dev bootstrap (k3d + Argo CD + Root App) =====
 .PHONY: k3d-create

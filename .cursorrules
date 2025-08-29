@@ -38,4 +38,3 @@ runtime:
     bootstrap:
       - ./bootstrap/argocd-install.sh
       - kubectl apply -f cluster/base/root-app.yaml
-

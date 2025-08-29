@@ -3,6 +3,7 @@
 Keep the PRD goals in mind: fully self-hosted, portable across environments, enforce data residency, and remain simple to operate.
 
 ### Repo Layout (current)
+
 - `cluster/base`: Argo CD root app
 - `cluster/apps`: shared app manifests (e.g., MinIO, Supabase)
 - `cluster/overlays/dev-local`: local overlay
@@ -10,29 +11,36 @@ Keep the PRD goals in mind: fully self-hosted, portable across environments, enf
 - `Makefile`: common tasks and dev bootstrap
 
 Planned structure per PRD:
+
 - `cluster/apps`: frontend, backend-api, backend-ai, data (supabase, minio), ops (observability, backups)
 - `cluster/overlays/{dev-local,staging,production}`
 - `infra/` (Terraform) for cloud clusters
 
 ### Workflows
-1) Local dev
+
+1. Local dev
+
 ```bash
 make dev
 # Argo, MinIO, Supabase access via helper targets
 ```
 
-2) GitOps flow (staging → production)
+2. GitOps flow (staging → production)
+
 - Each app repo builds images on `staging` and promotes on `main` by digest
 - A bot updates this platform repo overlays via PRs
 - Merged PR triggers Argo CD sync
 
-3) Secrets
+3. Secrets
+
 - Use placeholders in dev-local only
 - Use sealed-secrets/vault for staging/production
 - Maintain a consistent passphrase scheme; request passphrase from maintainer when needed
 
 ### Roadmap and Steps to Target
+
 Near-term tasks aligning to PRD acceptance criteria:
+
 - Observability stack: Prometheus, Grafana, Loki, Tempo, Alertmanager
 - Backup stack: pgBackRest (WAL to MinIO), Velero (to MinIO)
 - Application overlays: frontend, backend-api, backend-ai with health checks
@@ -40,6 +48,7 @@ Near-term tasks aligning to PRD acceptance criteria:
 - Terraform modules for DO/Azure/GCP/On-Prem
 
 ### Conventions
+
 - Kustomize overlays per env; keep base minimal
 - Prefer Argo CD Applications per component (apps, data, ops)
 - Namespaces:
@@ -50,13 +59,38 @@ Near-term tasks aligning to PRD acceptance criteria:
 - Keep all defaults safe for dev-local; tighten for staging/prod
 
 ### Testing and Validation
+
 - After changes, validate Argo CD sync and component health
 - Use `kubectl -n <ns> get pods` and `k9s` for quick checks
 - Use Makefile helpers for port-forwards
 
 ### Definition of Done
+
 - Manifests applied successfully via Argo CD
 - Secrets wired appropriately for the target env
 - Services reachable via port-forward/ingress
 - Docs updated (INSTALLATION/DEVELOPMENT) when behavior changes
 
+### Supabase (dev-local) configuration
+
+- Enabled components: `db`, `rest`, `auth`, `storage`, `studio`
+- Disabled in dev-local: `realtime`, `functions`, `analytics`, `vector`, `meta`, `kong`
+- Image tags pinned per chart examples to avoid :latest 404s
+- Secrets applied via overlay:
+  - `supabase-db` with `username`, `password`, `password_encoded`, `database`
+  - `supabase-jwt` with `anonKey`, `serviceRoleKey`, `secret`
+  - `supabase-s3` with `keyId`, `accessKey` (MinIO)
+- Storage uses external S3 (MinIO) at `minio.tools.svc.cluster.local:9000`
+
+Troubleshooting quick refs:
+
+- ImagePullBackOff on Supabase: ensure pinned tags in `cluster/overlays/dev-local/apps/supabase.yaml`
+- "couldn't find key ... in Secret": verify keys in `cluster/overlays/dev-local/apps/supabase-secrets.yaml`
+- Re-apply overlay and restart:
+
+```bash
+kubectl apply -k cluster/overlays/dev-local
+kubectl -n supabase rollout restart deploy
+```
+
+- Port-forward helpers in Makefile: `make supabase-ui`, `make supabase-db`, `make minio-ui`
