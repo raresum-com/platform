@@ -12,50 +12,76 @@ spec:
     helm:
       releaseName: supabase
       values: |
-        # PostgreSQL (dev: ephemeral)
-        postgresql:
-          auth:
-            username: supabase_admin
-            password: supabase_pass
-            database: supabase
-          primary:
-            persistence:
-              enabled: false
-          volumePermissions:
-            enabled: true
+        # Secrets: reference existing secrets we create in overlay
+        secret:
+          jwt:
+            secretRef: supabase-jwt
+            secretRefKey:
+              anonKey: anonKey
+              serviceKey: serviceRoleKey
+              secret: jwtSecret
+          db:
+            secretRef: supabase-db
+            secretRefKey:
+              username: username
+              password: password
+              database: database
 
-        # Enable only essentials for dev-local
+        # Database (dev: ephemeral) and tag pin
+        db:
+          enabled: true
+          image:
+            tag: "15.1.0.147"
+          persistence:
+            enabled: false
+
+        # Studio
         studio:
           enabled: true
-          extraEnv:
-            - name: SUPABASE_PUBLIC_URL
-              value: http://localhost:3333
-            - name: SUPABASE_URL
-              value: http://supabase-supabase-rest:3000
-            - name: NEXT_ANALYTICS_BACKEND_PROVIDER
-              value: "none"
+          image:
+            tag: "20240326-5e5586d"
+          environment:
+            SUPABASE_PUBLIC_URL: http://localhost:3333
+            NEXT_PUBLIC_ENABLE_LOGS: "true"
+            NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
+
+        # REST (PostgREST)
         rest:
           enabled: true
-          extraEnv:
-            - name: PGRST_DB_URI
-              value: postgres://supabase_admin:supabase_pass@supabase-supabase-db.supabase.svc.cluster.local:5432/supabase
+          image:
+            tag: "v12.0.1"
+          environment:
+            PGRST_DB_SCHEMAS: public,storage,graphql_public
+            PGRST_DB_ANON_ROLE: anon
+
+        # Auth (GoTrue)
         auth:
           enabled: true
-          extraEnv:
-            - name: GOTRUE_JWT_SECRET
-              value: dev-local-jwt-secret-change-me
-            - name: GOTRUE_SITE_URL
-              value: http://localhost:3333
-            - name: SUPABASE_PUBLIC_URL
-              value: http://localhost:3333
+          image:
+            tag: "v2.143.0"
+          environment:
+            API_EXTERNAL_URL: http://localhost:3333
+            GOTRUE_SITE_URL: http://localhost:3333
+            GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+            GOTRUE_MAILER_AUTOCONFIRM: "true"
+            GOTRUE_SMTP_ADMIN_EMAIL: "dev@example.local"
+            GOTRUE_SMTP_HOST: "localhost"
+            GOTRUE_SMTP_PORT: "25"
+            GOTRUE_SMTP_SENDER_NAME: "dev"
+
+        # Storage -> external S3 (MinIO)
         storage:
           enabled: true
-          externalS3:
-            enabled: true
-            endpoint: http://minio.tools.svc.cluster.local:9000
-            accessKey: minioadmin
-            secretKey: minioadmin123
-            bucket: dev-local
+          image:
+            tag: "v0.46.4"
+          environment:
+            STORAGE_BACKEND: s3
+            GLOBAL_S3_ENDPOINT: http://minio.tools.svc.cluster.local:9000
+            GLOBAL_S3_PROTOCOL: http
+            GLOBAL_S3_FORCE_PATH_STYLE: true
+            AWS_DEFAULT_REGION: dev
+          persistence:
+            enabled: false
 
         # Disable nonessential modules for dev-local
         realtime:
