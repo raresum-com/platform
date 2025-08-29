@@ -1,0 +1,41 @@
+project:
+  goals:
+    - Fully self-hosted, portable across laptops/on-prem/clouds without stack changes
+    - Enforce data residency per region; isolate Supabase + MinIO per environment
+    - Simple DevEx, GitOps via Argo CD, transparent CI/CD, built-in observability and backups
+
+conventions:
+  code_style:
+    - Prefer clarity over brevity; meaningful names
+    - Keep overlays minimal; env-specific diffs only
+  k8s:
+    - Use Argo CD Applications for components; automate sync with prune/selfHeal
+    - Namespace: argocd, tools (MinIO), supabase
+  secrets:
+    - Dev-local: placeholders are acceptable
+    - Staging/Prod: sealed-secrets or vault; single passphrase maintained by owner
+  docs:
+    - Update docs/INSTALLATION.md and docs/DEVELOPMENT.md when behavior changes
+
+cursor:
+  default_branch: main
+  pr_checks:
+    - Validate kustomize builds for overlays/*
+    - Ensure secrets are not committed in plaintext (except dev-local placeholders)
+  assistants:
+    - When adding apps, prefer Argo CD Application manifests referencing upstream charts
+    - After edits, propose Makefile helpers if usability improves
+  file_rules:
+    - Do not reformat unrelated code
+    - Preserve indentation style and width
+    - Avoid adding binary/large files
+
+runtime:
+  local:
+    cluster: k3d
+    bootstrap: make dev
+  server:
+    bootstrap:
+      - ./bootstrap/argocd-install.sh
+      - kubectl apply -f cluster/base/root-app.yaml
+

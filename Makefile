@@ -14,6 +14,9 @@ MINIO_API_TARGET     := 9000
 MINIO_UI_LOCAL_PORT := 9090
 MINIO_UI_TARGET     := 9090
 
+# k3d cluster name
+K3D_CLUSTER_NAME := raresum
+
 # ===== Helpers =====
 .PHONY: help
 help:
@@ -23,6 +26,12 @@ help:
 	@echo "make minio-api        # MinIO S3 API -> http://localhost:$(MINIO_API_LOCAL_PORT)"
 	@echo "make minio-ui         # MinIO Console -> http://localhost:$(MINIO_UI_LOCAL_PORT)"
 	@echo "make stop-ports       # 3333,5432,9000,9090 port-forward süreçlerini kapat"
+	@echo "make k3d-create       # k3d ile lokal cluster oluştur (platform dev)"
+	@echo "make k3d-delete       # k3d cluster'ı sil"
+	@echo "make argocd-install   # Argo CD'yi kur (helm)"
+	@echo "make argo-ui          # Argo CD UI -> http://localhost:8080 (port-forward)"
+	@echo "make apply-root       # Root Application'ı uygula (overlays/dev-local)"
+	@echo "make dev              # k3d + Argo CD + Root App (mini-prod)"
 
 .PHONY: list-supabase
 list-supabase:
@@ -83,3 +92,46 @@ minio-api:
 .PHONY: minio-ui
 minio-ui:
 	kubectl -n $(MINIO_NS) port-forward svc/minio-console $(MINIO_UI_LOCAL_PORT):$(MINIO_UI_TARGET)
+
+# ===== Dev bootstrap (k3d + Argo CD + Root App) =====
+.PHONY: k3d-create
+k3d-create:
+	@which k3d >/dev/null || (echo "[ERR] k3d yüklü değil. bkz: https://k3d.io" && exit 1)
+	@which kubectl >/dev/null || (echo "[ERR] kubectl yüklü değil." && exit 1)
+	@echo "[INFO] k3d cluster oluşturuluyor: $(K3D_CLUSTER_NAME)"
+	-@k3d cluster create $(K3D_CLUSTER_NAME) \
+	  --agents 1 \
+	  --port 80:80@loadbalancer \
+	  --port 443:443@loadbalancer
+	@kubectl cluster-info
+
+.PHONY: k3d-delete
+k3d-delete:
+	@echo "[INFO] k3d cluster siliniyor: $(K3D_CLUSTER_NAME)"
+	-@k3d cluster delete $(K3D_CLUSTER_NAME)
+
+.PHONY: argocd-install
+argocd-install:
+	@which helm >/dev/null || (echo "[ERR] helm yüklü değil." && exit 1)
+	@echo "[INFO] Argo CD kuruluyor"
+	./bootstrap/argocd-install.sh
+	@echo "[INFO] Argo CD pod'ları bekleniyor"
+	@kubectl -n argocd rollout status deploy/argocd-server --timeout=180s || true
+
+.PHONY: argo-ui
+argo-ui:
+	@echo "[INFO] Argo CD UI -> http://localhost:8080"
+	kubectl -n argocd port-forward svc/argocd-server 8080:443
+
+.PHONY: apply-root
+apply-root:
+	@echo "[INFO] Root Application uygulanıyor (cluster/base/root-app.yaml)"
+	kubectl apply -f cluster/base/root-app.yaml
+	@echo "[INFO] Argo CD senkronizasyonunu kontrol edin. (Applications)"
+
+.PHONY: dev
+dev: k3d-create argocd-install apply-root
+	@echo "[OK] Mini-prod kuruldu. UI erişimleri:"
+	@echo " - Argo CD: make argo-ui (8080)"
+	@echo " - MinIO: make minio-ui (9090), make minio-api (9000)"
+	@echo " - Supabase: make supabase-ui (3333), make supabase-db (5432)"
