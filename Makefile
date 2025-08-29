@@ -63,7 +63,7 @@ supabase-ui:
 	  echo "[OK] deploy/$$DEP -> localhost:$(SUPABASE_STUDIO_LOCAL_PORT) (remote:$(SUPABASE_POD_TARGET))"; \
 	  exec kubectl -n $(SUPA_NS) port-forward deploy/$$DEP $(SUPABASE_STUDIO_LOCAL_PORT):$(SUPABASE_POD_TARGET); \
 	fi; \
-	$(call svc_heuristic, supabase-supabase-studio supabase-studio studio, app.kubernetes.io/name=supabase-studio) \
+	SVC=$$(kubectl -n $(SUPA_NS) get svc -l 'app.kubernetes.io/name=supabase-studio' -o jsonpath='{.items[0].metadata.name}' 2>/dev/null); if [ -z "$$SVC" ]; then for CAND in  supabase-supabase-studio supabase-studio studio; do kubectl -n $(SUPA_NS) get svc $$CAND >/dev/null 2>&1 && SVC=$$CAND && break; done; fi; \
 	if [ -n "$$SVC" ]; then \
 	  SVCPORT=$$(kubectl -n $(SUPA_NS) get svc $$SVC -o jsonpath='{.spec.ports[0].port}'); \
 	  echo "[OK] svc/$$SVC -> localhost:$(SUPABASE_STUDIO_LOCAL_PORT) (remote:$$SVCPORT)"; \
