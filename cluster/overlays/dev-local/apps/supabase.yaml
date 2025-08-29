@@ -129,7 +129,7 @@ spec:
         - name: vector.enabled
           value: "false"
         - name: meta.enabled
-          value: "false"
+          value: "true"
         - name: kong.enabled
           value: "false"
   destination:
