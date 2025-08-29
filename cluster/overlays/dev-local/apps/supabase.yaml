@@ -100,6 +100,29 @@ spec:
           enabled: false
         kong:
           enabled: false
+      parameters:
+        - name: db.image.tag
+          value: "15.1.0.147"
+        - name: studio.image.tag
+          value: "20240326-5e5586d"
+        - name: rest.image.tag
+          value: "v12.0.1"
+        - name: auth.image.tag
+          value: "v2.143.0"
+        - name: storage.image.tag
+          value: "v0.46.4"
+        - name: realtime.enabled
+          value: "false"
+        - name: functions.enabled
+          value: "false"
+        - name: analytics.enabled
+          value: "false"
+        - name: vector.enabled
+          value: "false"
+        - name: meta.enabled
+          value: "false"
+        - name: kong.enabled
+          value: "false"
   destination:
     server: https://kubernetes.default.svc
     namespace: supabase
