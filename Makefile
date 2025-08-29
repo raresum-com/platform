@@ -17,11 +17,15 @@ MINIO_UI_TARGET     := 9001
 # k3d cluster name
 K3D_CLUSTER_NAME := raresum
 
+# Supabase Studio NodePort (dev-local)
+SUPABASE_NODEPORT := 31333
+
 # ===== Helpers =====
 .PHONY: help
 help:
 	@echo "make list-supabase   # Supabase namespace'teki Service/Deploy/Pod'ları gösterir"
 	@echo "make supabase-ui      # Supabase Studio -> http://localhost:$(SUPABASE_STUDIO_LOCAL_PORT)"
+	@echo "make supabase-ui-nodeport # Supabase Studio (NodePort) -> http://localhost:$(SUPABASE_NODEPORT)"
 	@echo "make supabase-db      # Supabase Postgres -> localhost:$(SUPABASE_DB_LOCAL_PORT)"
 	@echo "make minio-api        # MinIO S3 API -> http://localhost:$(MINIO_API_LOCAL_PORT)"
 	@echo "make minio-ui         # MinIO Console -> http://localhost:$(MINIO_UI_LOCAL_PORT)"
@@ -63,6 +67,12 @@ supabase-ui:
 	  exec kubectl -n $(SUPA_NS) port-forward $$SVC $(SUPABASE_STUDIO_LOCAL_PORT):$$SVCPORT; \
 	fi; \
 	echo "[ERR] Studio service bulunamadı."; exit 1
+
+.PHONY: supabase-ui-nodeport
+supabase-ui-nodeport:
+	@URL=http://localhost:$(SUPABASE_NODEPORT); \
+	echo "[OK] Supabase Studio (NodePort) -> $$URL"; \
+	if command -v open >/dev/null 2>&1; then open $$URL; elif command -v xdg-open >/dev/null 2>&1; then xdg-open $$URL; else echo "Open $$URL in your browser"; fi
 
 .PHONY: supabase-db
 supabase-db:
