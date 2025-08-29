@@ -12,7 +12,7 @@ spec:
     helm:
       releaseName: supabase
       values: |
-        # --- PostgreSQL (lokal geliştirme: kalıcılık KAPALI) ---
+        # --- PostgreSQL (dev için kalıcılık kapalı) ---
         postgresql:
           auth:
             username: supabase_admin
@@ -24,20 +24,37 @@ spec:
           volumePermissions:
             enabled: true
 
-        # --- Studio ---
+        # --- Sadece gerekli modüller açık ---
         studio:
           enabled: true
+        rest:
+          enabled: true
+        auth:
+          enabled: true
+        storage:
+          enabled: true
 
-        # --- REST (PostgREST) ---
+        # Geri kalan her şey kapalı
+        realtime: { enabled: false }
+        functions: { enabled: false }
+        analytics: { enabled: false }
+        vector: { enabled: false }
+        meta: { enabled: false }
+        kong: { enabled: false }
+
+        # --- REST (PostgREST) DB bağlantısı ---
         rest:
           enabled: true
           extraEnv:
             - name: PGRST_DB_URI
               value: postgres://supabase_admin:supabase_pass@supabase-supabase-db.supabase.svc.cluster.local:5432/supabase
 
-        # --- Auth (GoTrue) ---
+        # --- Auth (GoTrue) minimum env ---
         auth:
           enabled: true
+          image:
+            repository: supabase/gotrue
+            tag: v2.165.1
           extraEnv:
             - name: GOTRUE_JWT_SECRET
               value: dev-local-jwt-secret-change-me
@@ -56,21 +73,7 @@ spec:
             secretKey: minioadmin123
             bucket: dev-local
 
-        # --- Şimdilik kapalı modüller (lokal için sade kurulum) ---
-        realtime:
-          enabled: false
-        functions:
-          enabled: false
-        analytics:
-          enabled: false
-        vector:
-          enabled: false
-        meta:
-          enabled: false
-        kong:
-          enabled: false
-
-        # --- Global env (bazı bileşenler ortak kullanır) ---
+        # --- Global: pull secret (rate limit'e karşı) ---
         global:
           env:
             - name: JWT_SECRET
@@ -79,7 +82,6 @@ spec:
               value: http://localhost:3333
           imagePullSecrets:
             - name: dockerhub-creds
-
   destination:
     server: https://kubernetes.default.svc
     namespace: supabase
