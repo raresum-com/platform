@@ -19,7 +19,7 @@ spec:
             secretRefKey:
               anonKey: anonKey
               serviceKey: serviceRoleKey
-              secret: jwtSecret
+              secret: secret
           db:
             secretRef: supabase-db
             secretRefKey:
