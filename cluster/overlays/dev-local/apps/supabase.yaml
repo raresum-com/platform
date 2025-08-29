@@ -50,6 +50,7 @@ spec:
             tag: "20240326-5e5586d"
           environment:
             HOST: 0.0.0.0
+            HOSTNAME: 0.0.0.0
             SUPABASE_PUBLIC_URL: http://localhost:3333
             SUPABASE_URL: http://supabase-supabase-rest:3000
             NEXT_PUBLIC_ENABLE_LOGS: "true"
