@@ -48,14 +48,21 @@ spec:
           enabled: true
           image:
             tag: "20240326-5e5586d"
-          environment:
-            HOST: 0.0.0.0
-            HOSTNAME: 0.0.0.0
-            SUPABASE_PUBLIC_URL: http://localhost:31333
-            SUPABASE_URL: http://supabase-gateway
-            STUDIO_PG_META_URL: http://postgres-meta:8080
-            NEXT_PUBLIC_ENABLE_LOGS: "true"
-            NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
+          extraEnv:
+            - name: HOST
+              value: 0.0.0.0
+            - name: HOSTNAME
+              value: 0.0.0.0
+            - name: SUPABASE_PUBLIC_URL
+              value: http://localhost:31333
+            - name: SUPABASE_URL
+              value: http://supabase-gateway
+            - name: STUDIO_PG_META_URL
+              value: http://postgres-meta:8080
+            - name: NEXT_PUBLIC_ENABLE_LOGS
+              value: "true"
+            - name: NEXT_ANALYTICS_BACKEND_PROVIDER
+              value: postgres
 
         # REST (PostgREST)
         rest:

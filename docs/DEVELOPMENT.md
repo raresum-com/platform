@@ -37,32 +37,42 @@ make dev
 - Use sealed-secrets/vault for staging/production
 - Maintain a consistent passphrase scheme; request passphrase from maintainer when needed
 
-### Roadmap and Steps to Target
+### Supabase (dev-local)
 
-Near-term tasks aligning to PRD acceptance criteria:
+- Enabled: `db`, `rest`, `auth`, `storage`, `studio`
+- Helpers: `postgres-meta` (schema browsing), `gateway` (routes /rest, /auth, /storage, /pg-meta)
+- Disabled: `realtime`, `functions`, `analytics`, `vector`, `kong`
+- Image tags pinned to avoid `:latest`
+- Secrets via overlay:
+  - `supabase-db` → username/password/database
+  - `supabase-jwt` → `anonKey` / `serviceRoleKey` / `secret`
+  - `supabase-s3` → MinIO access keys
+- Storage → MinIO at `minio.tools.svc.cluster.local:9000`
 
-- Observability stack: Prometheus, Grafana, Loki, Tempo, Alertmanager
-- Backup stack: pgBackRest (WAL to MinIO), Velero (to MinIO)
-- Application overlays: frontend, backend-api, backend-ai with health checks
-- CI/CD bots in app repos to open overlay PRs
-- Terraform modules for DO/Azure/GCP/On-Prem
+Access helpers (Makefile):
 
-### Conventions
+- Argo: `make argo-ui` → https://localhost:8080 (admin / initial secret)
+- MinIO: `make minio-ui` → http://localhost:9090
+- Studio: `make supabase-ui` → http://localhost:3333 (preferred)
+- Optional NodePorts: `make supabase-ui-nodeport`
 
-- Kustomize overlays per env; keep base minimal
-- Prefer Argo CD Applications per component (apps, data, ops)
-- Namespaces:
-  - `tools`: shared tooling (MinIO)
-  - `supabase`: Supabase stack
-  - `argocd`: Argo CD
-- Resource requirements start small; scale via overlays
-- Keep all defaults safe for dev-local; tighten for staging/prod
+Gateway (optional local testing):
 
-### Testing and Validation
+```bash
+kubectl -n supabase port-forward svc/supabase-gateway 8088:80
+SR=$(kubectl -n supabase get secret supabase-jwt -o jsonpath='{.data.serviceRoleKey}' | base64 -d)
+curl -i -H "Authorization: Bearer $SR" http://localhost:8088/storage/v1/bucket
+```
 
-- After changes, validate Argo CD sync and component health
-- Use `kubectl -n <ns> get pods` and `k9s` for quick checks
-- Use Makefile helpers for port-forwards
+### Troubleshooting
+
+- OutOfSync in Argo CD (supabase): expected in dev-local; helpers are overlay-managed.
+- Storage create-bucket fails:
+  - Verify gateway forwarding works (curl above)
+  - Check Storage logs: `kubectl -n supabase logs deploy/supabase-supabase-storage --tail=200`
+- PgMeta errors in Studio:
+  - Verify PgMeta: `kubectl -n supabase logs deploy/postgres-meta --tail=50`
+- Ports busy: `make stop-ports`
 
 ### Definition of Done
 
@@ -70,27 +80,3 @@ Near-term tasks aligning to PRD acceptance criteria:
 - Secrets wired appropriately for the target env
 - Services reachable via port-forward/ingress
 - Docs updated (INSTALLATION/DEVELOPMENT) when behavior changes
-
-### Supabase (dev-local) configuration
-
-- Enabled components: `db`, `rest`, `auth`, `storage`, `studio`
-- Disabled in dev-local: `realtime`, `functions`, `analytics`, `vector`, `meta`, `kong`
-- Image tags pinned per chart examples to avoid :latest 404s
-- Secrets applied via overlay:
-  - `supabase-db` with `username`, `password`, `password_encoded`, `database`
-  - `supabase-jwt` with `anonKey`, `serviceRoleKey`, `secret`
-  - `supabase-s3` with `keyId`, `accessKey` (MinIO)
-- Storage uses external S3 (MinIO) at `minio.tools.svc.cluster.local:9000`
-
-Troubleshooting quick refs:
-
-- ImagePullBackOff on Supabase: ensure pinned tags in `cluster/overlays/dev-local/apps/supabase.yaml`
-- "couldn't find key ... in Secret": verify keys in `cluster/overlays/dev-local/apps/supabase-secrets.yaml`
-- Re-apply overlay and restart:
-
-```bash
-kubectl apply -k cluster/overlays/dev-local
-kubectl -n supabase rollout restart deploy
-```
-
-- Port-forward helpers in Makefile: `make supabase-ui`, `make supabase-db`, `make minio-ui`
