@@ -34,6 +34,9 @@ spec:
             tag: "15.1.0.147"
           persistence:
             enabled: false
+          environment:
+            POSTGRES_USER: postgres
+            POSTGRES_DB: postgres
 
         # Studio
         studio:
@@ -42,6 +45,7 @@ spec:
             tag: "20240326-5e5586d"
           environment:
             SUPABASE_PUBLIC_URL: http://localhost:3333
+            SUPABASE_URL: http://supabase-supabase-rest:3000
             NEXT_PUBLIC_ENABLE_LOGS: "true"
             NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
 
