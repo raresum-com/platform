@@ -21,25 +21,25 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: DB_HOST
+            - name: PG_META_DB_HOST
               value: supabase-supabase-db
-            - name: DB_PORT
+            - name: PG_META_DB_PORT
               value: "5432"
-            - name: DB_DRIVER
+            - name: PG_META_DB_DRIVER
               value: postgres
-            - name: DB_SSL
+            - name: PG_META_DB_SSL
               value: disable
-            - name: DB_USER
+            - name: PG_META_DB_USER
               valueFrom:
                 secretKeyRef:
                   name: supabase-db
                   key: username
-            - name: DB_PASSWORD
+            - name: PG_META_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: supabase-db
                   key: password
-            - name: DB_NAME
+            - name: PG_META_DB_NAME
               valueFrom:
                 secretKeyRef:
                   name: supabase-db
