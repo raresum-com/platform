@@ -104,7 +104,9 @@ spec:
         vector:
           enabled: false
         meta:
-          enabled: false
+          enabled: true
+          image:
+            tag: "v0.80.0"
         kong:
           enabled: false
       parameters:
