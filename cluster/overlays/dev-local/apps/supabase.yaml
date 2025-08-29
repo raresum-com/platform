@@ -52,7 +52,7 @@ spec:
             HOST: 0.0.0.0
             HOSTNAME: 0.0.0.0
             SUPABASE_PUBLIC_URL: http://localhost:31333
-            SUPABASE_URL: http://supabase-supabase-rest:3000
+            SUPABASE_URL: http://supabase-supabase-kong:8000
             STUDIO_PG_META_URL: http://postgres-meta:8080
             NEXT_PUBLIC_ENABLE_LOGS: "true"
             NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
@@ -110,7 +110,7 @@ spec:
           image:
             tag: "v0.80.0"
         kong:
-          enabled: false
+          enabled: true
       parameters:
         - name: db.image.tag
           value: "15.1.0.147"
