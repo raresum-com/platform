@@ -12,7 +12,7 @@ spec:
     helm:
       releaseName: supabase
       values: |
-        # --- PostgreSQL (dev için kalıcılık kapalı) ---
+        # PostgreSQL (dev: ephemeral)
         postgresql:
           auth:
             username: supabase_admin
@@ -24,7 +24,7 @@ spec:
           volumePermissions:
             enabled: true
 
-        # --- Sadece gerekli modüller açık ---
+        # Enable only essentials for dev-local
         studio:
           enabled: true
           extraEnv:
@@ -32,40 +32,15 @@ spec:
               value: http://localhost:3333
             - name: SUPABASE_URL
               value: http://supabase-supabase-rest:3000
-            - name: STUDIO_PG_META_URL
-              value: ""
-            - name: LOGFLARE_URL
-              value: ""
             - name: NEXT_ANALYTICS_BACKEND_PROVIDER
               value: "none"
-        rest:
-          enabled: true
-        auth:
-          enabled: true
-        storage:
-          enabled: true
-
-        # Geri kalan her şey kapalı
-        realtime: { enabled: false }
-        functions: { enabled: false }
-        analytics: { enabled: false }
-        vector: { enabled: false }
-        meta: { enabled: false }
-        kong: { enabled: false }
-
-        # --- REST (PostgREST) DB bağlantısı ---
         rest:
           enabled: true
           extraEnv:
             - name: PGRST_DB_URI
               value: postgres://supabase_admin:supabase_pass@supabase-supabase-db.supabase.svc.cluster.local:5432/supabase
-
-        # --- Auth (GoTrue) minimum env ---
         auth:
           enabled: true
-          image:
-            repository: supabase/gotrue
-            tag: v2.165.1
           extraEnv:
             - name: GOTRUE_JWT_SECRET
               value: dev-local-jwt-secret-change-me
@@ -73,8 +48,6 @@ spec:
               value: http://localhost:3333
             - name: SUPABASE_PUBLIC_URL
               value: http://localhost:3333
-
-        # --- Storage → MinIO ---
         storage:
           enabled: true
           externalS3:
@@ -84,15 +57,19 @@ spec:
             secretKey: minioadmin123
             bucket: dev-local
 
-        # --- Global: pull secret (rate limit'e karşı) ---
-        global:
-          env:
-            - name: JWT_SECRET
-              value: dev-local-jwt-secret-change-me
-            - name: SUPABASE_PUBLIC_URL
-              value: http://localhost:3333
-          imagePullSecrets:
-            - name: dockerhub-creds
+        # Disable nonessential modules for dev-local
+        realtime:
+          enabled: false
+        functions:
+          enabled: false
+        analytics:
+          enabled: false
+        vector:
+          enabled: false
+        meta:
+          enabled: false
+        kong:
+          enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: supabase
