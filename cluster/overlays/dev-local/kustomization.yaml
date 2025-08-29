@@ -8,4 +8,5 @@ resources:
   - ./apps/supabase-s3-secret.yaml
   - ./apps/supabase-smtp-secret.yaml
   - ./apps/studio-nodeport.yaml
+  - ./apps/pgmeta.yaml
   - ./apps/supabase-db-pvc.yaml

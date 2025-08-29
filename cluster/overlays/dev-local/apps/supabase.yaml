@@ -53,6 +53,7 @@ spec:
             HOSTNAME: 0.0.0.0
             SUPABASE_PUBLIC_URL: http://localhost:3333
             SUPABASE_URL: http://supabase-supabase-rest:3000
+            STUDIO_PG_META_URL: http://postgres-meta:8080
             NEXT_PUBLIC_ENABLE_LOGS: "true"
             NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
 
