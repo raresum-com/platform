@@ -11,4 +11,5 @@ resources:
   - ./apps/pgmeta.yaml
   - ./apps/kong-nodeport.yaml
   - ./apps/gateway.yaml
+  - ./apps/gateway-nodeport.yaml
   - ./apps/supabase-db-pvc.yaml
