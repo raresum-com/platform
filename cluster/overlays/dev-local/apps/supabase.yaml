@@ -52,7 +52,7 @@ spec:
             HOST: 0.0.0.0
             HOSTNAME: 0.0.0.0
             SUPABASE_PUBLIC_URL: http://localhost:31333
-            SUPABASE_URL: http://supabase-supabase-kong:8000
+            SUPABASE_URL: http://supabase-gateway
             STUDIO_PG_META_URL: http://postgres-meta:8080
             NEXT_PUBLIC_ENABLE_LOGS: "true"
             NEXT_ANALYTICS_BACKEND_PROVIDER: postgres

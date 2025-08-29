@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: supabase-gateway-nginx
+  namespace: supabase
+data:
+  nginx.conf: |
+    events {}
+    http {
+      resolver kube-dns.kube-system.svc.cluster.local valid=5s ipv6=off;
+      server {
+        listen 80;
+        # REST
+        location /rest/v1/ {
+          proxy_pass http://supabase-supabase-rest:3000/;
+        }
+        # Auth
+        location /auth/v1/ {
+          proxy_pass http://supabase-supabase-auth:9999/;
+        }
+        # Storage
+        location /storage/v1/ {
+          proxy_pass http://supabase-supabase-storage:5000/;
+        }
+        # PgMeta
+        location /pg-meta/ {
+          proxy_pass http://postgres-meta:8080/;
+        }
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: supabase-gateway
+  namespace: supabase
+labels:
+  app: supabase-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: supabase-gateway }
+  template:
+    metadata:
+      labels: { app: supabase-gateway }
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.25-alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: cfg
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+      volumes:
+        - name: cfg
+          configMap:
+            name: supabase-gateway-nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: supabase-gateway
+  namespace: supabase
+spec:
+  selector: { app: supabase-gateway }
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+
