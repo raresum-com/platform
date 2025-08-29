@@ -6,4 +6,5 @@ resources:
   - ./apps/minio.yaml
   - ./apps/supabase-secrets.yaml
   - ./apps/supabase-s3-secret.yaml
+  - ./apps/supabase-smtp-secret.yaml
   - ./apps/supabase-db-pvc.yaml
