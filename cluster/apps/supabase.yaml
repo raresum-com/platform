@@ -27,6 +27,17 @@ spec:
         # --- Sadece gerekli modüller açık ---
         studio:
           enabled: true
+          extraEnv:
+            - name: SUPABASE_PUBLIC_URL
+              value: http://localhost:3333
+            - name: SUPABASE_URL
+              value: http://supabase-supabase-rest:3000
+            - name: STUDIO_PG_META_URL
+              value: ""
+            - name: LOGFLARE_URL
+              value: ""
+            - name: NEXT_ANALYTICS_BACKEND_PROVIDER
+              value: "none"
         rest:
           enabled: true
         auth:
