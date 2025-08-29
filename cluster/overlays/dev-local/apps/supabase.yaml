@@ -26,6 +26,11 @@ spec:
               username: username
               password: password
               database: database
+          s3:
+            secretRef: supabase-s3
+            secretRefKey:
+              keyId: keyId
+              accessKey: accessKey
 
         # Database (dev: ephemeral) and tag pin
         db:
