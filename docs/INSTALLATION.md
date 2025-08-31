@@ -52,10 +52,10 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.pas
 make minio-ui
 make minio-api
 
-# Supabase Studio (preferred)
-make supabase-ui   # http://localhost:3333
-# Optional (no port-forward)
+# Supabase Studio (NodePort is preferred for stability)
 make supabase-ui-nodeport   # http://localhost:31333
+# Optional port-forward helper (may be flaky if kubectl version skew exists)
+make supabase-ui            # http://localhost:3333
 ```
 
 Default local credentials:
@@ -63,6 +63,28 @@ Default local credentials:
 - MinIO: user `minioadmin`, password `minioadmin123`, bucket `dev-local`
 - Supabase DB: `supabase_admin` / `supabase_pass`
 - JWT secrets are placeholder values in dev-local; do not reuse in real environments.
+
+Argo CD login:
+
+- Username: `admin`
+- Password:
+  ```bash
+  kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d; echo
+  ```
+
+Troubleshooting (local):
+
+- Kubectl version skew can break port-forward. Prefer NodePorts.
+  ```bash
+  make check-kubectl-skew
+  # If skew > 1 minor version, use NodePort targets or align versions
+  ```
+- Ports busy: `make stop-ports`
+- Supabase Storage check via gateway (service role):
+  ```bash
+  SR=$(kubectl -n supabase get secret supabase-jwt -o jsonpath='{.data.serviceRoleKey}' | base64 -d)
+  curl -i -H "Authorization: Bearer $SR" http://localhost:31380/storage/v1/health
+  ```
 
 Cleanup:
 
@@ -95,6 +117,36 @@ kubectl apply -f cluster/base/root-app.yaml
 4. Switch overlay per environment
 
 - For staging/production, point `cluster/base/root-app.yaml` to `cluster/overlays/<env>` and ensure required secrets exist.
+
+Supabase Logs vs. Platform Logs:
+
+- Dev-local: Supabase Studio Logs are disabled by default (analytics/vector off) to keep bootstrap light. Core services (DB/REST/Auth/Storage) still work.
+- What you miss locally by keeping Supabase logs off:
+  - Studio’s built-in request/query logs UI. You still have container logs via `kubectl logs` and DB logs inside Postgres.
+- On servers: enable Supabase logs by turning on `analytics` and `vector` in the server overlay and pinning images. Alternatively (recommended for platform-wide observability), deploy a central stack (Loki/Tempo/Prometheus/Grafana) and ship application logs there. Supabase logs then become optional.
+
+Example: enabling Supabase logs in a server overlay (sketch):
+
+```yaml
+# overlays/production/apps/supabase.yaml (excerpt)
+spec:
+  source:
+    helm:
+      values: |
+        analytics:
+          enabled: true
+        vector:
+          enabled: true
+      parameters:
+        - name: analytics.enabled
+          value: "true"
+        - name: vector.enabled
+          value: "true"
+```
+
+Platform observability (recommended):
+
+- Use an observability stack (Grafana LGTM) for server logs and metrics. Application pods (API, workers) ship logs to Loki; traces to Tempo. This covers server/API/Celery/runtime logs comprehensively beyond Supabase.
 
 ### 4) Secrets Management
 

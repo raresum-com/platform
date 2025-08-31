@@ -106,8 +106,16 @@ k3d-create:
 	-@k3d cluster create $(K3D_CLUSTER_NAME) \
 	  --agents 1 \
 	  --port 80:80@loadbalancer \
-	  --port 443:443@loadbalancer
+	  --port 443:443@loadbalancer \
+	  --port 31333:31333@server:0 \
+	  --port 31380:31380@server:0 \
+	  --port 31300:31300@server:0
 	@kubectl cluster-info
+
+.PHONY: check-kubectl-skew
+check-kubectl-skew:
+	@echo "[INFO] kubectl client/server versions (skew >1 may break port-forward):"
+	@kubectl version || true
 
 .PHONY: k3d-delete
 k3d-delete:

@@ -56,6 +56,15 @@ Access helpers (Makefile):
 - Studio: `make supabase-ui` → http://localhost:3333 (preferred)
 - Optional NodePorts: `make supabase-ui-nodeport`
 
+Troubleshooting (local access):
+
+- Port-forward fails with "Empty reply from server" or ECONNRESET:
+  - Check version skew: `make check-kubectl-skew` (skew >1 can break port-forward)
+  - Workarounds:
+    - Downgrade kubectl to match cluster (e.g., 1.31) or recreate k3d with matching version
+    - Use NodePort instead of port-forward: ensure k3d publishes 31333 (use `make k3d-create` from this repo)
+    - Stop existing forwards: `make stop-ports` and retry `make supabase-ui`
+
 Gateway (optional local testing):
 
 ```bash
