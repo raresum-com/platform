@@ -64,7 +64,9 @@ data:
           add_header 'Access-Control-Allow-Origin' $http_origin always;
           add_header 'Vary' 'Origin' always;
           add_header 'Access-Control-Allow-Credentials' 'true' always;
-          proxy_pass http://supabase-supabase-storage:5000/;
+          # Strip /storage/v1 prefix and pass to storage service
+          rewrite ^/storage/v1/(.*)$ /$1 break;
+          proxy_pass http://supabase-supabase-storage:5000;
         }
         # PgMeta
         location /pg-meta/ {
