@@ -119,10 +119,12 @@ spec:
             PGOPTIONS: "-c search_path=storage,public"
             DATABASE_URL: postgres://postgres:supabase_pass@supabase-supabase-db:5432/postgres
             FILE_SIZE_LIMIT: "52428800"
-            STORAGE_FILE_SIZE_LIMIT: "52428800"
             TENANT_ID: stub
             PROJECT_REF: stub
-            # Enable storage features
+            # JWT Configuration for storage service
+            JWT_SECRET: your-super-secret-jwt-token-with-at-least-32-characters-long
+            PGRST_JWT_SECRET: your-super-secret-jwt-token-with-at-least-32-characters-long
+            # Enable storage features  
             STORAGE_S3_REGION: us-east-1
             STORAGE_S3_ENDPOINT: http://minio.tools.svc.cluster.local:9000
             STORAGE_S3_FORCE_PATH_STYLE: "true"
