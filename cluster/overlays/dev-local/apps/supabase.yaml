@@ -59,7 +59,7 @@ spec:
           environment:
             # Override default URLs that point to example.com
             SUPABASE_PUBLIC_URL: http://localhost:31380
-            SUPABASE_URL: http://supabase-gateway
+            SUPABASE_URL: http://localhost:31380
             STUDIO_PG_META_URL: http://localhost:31380/pg-meta
             NEXT_PUBLIC_SUPABASE_URL: http://localhost:31380
             NEXT_PUBLIC_ENABLE_LOGS: "true"
@@ -114,10 +114,17 @@ spec:
             GLOBAL_S3_BUCKET: dev-local
             REGION: us-east-1
             AWS_DEFAULT_REGION: us-east-1
+            # Database configuration - use postgres user instead of supabase_storage_admin
+            DB_HOST: supabase-supabase-db
+            DB_PORT: "5432"
+            DB_USER: postgres
+            DB_NAME: postgres
+            DB_DRIVER: postgres
+            DB_SSL: disable
+            DATABASE_URL: postgres://postgres:supabase_pass@supabase-supabase-db:5432/postgres
             # Required environment variables for storage service
             POSTGREST_URL: http://supabase-supabase-rest:3000
             PGOPTIONS: "-c search_path=storage,public"
-            DATABASE_URL: postgres://postgres:supabase_pass@supabase-supabase-db:5432/postgres
             FILE_SIZE_LIMIT: "52428800"
             TENANT_ID: stub
             PROJECT_REF: stub
@@ -128,6 +135,9 @@ spec:
             STORAGE_S3_REGION: us-east-1
             STORAGE_S3_ENDPOINT: http://minio.tools.svc.cluster.local:9000
             STORAGE_S3_FORCE_PATH_STYLE: "true"
+            # AWS credentials for MinIO
+            AWS_ACCESS_KEY_ID: minioadmin
+            AWS_SECRET_ACCESS_KEY: minioadmin123
           persistence:
             enabled: false
 
