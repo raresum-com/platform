@@ -57,16 +57,21 @@ spec:
           image:
             tag: "20240326-5e5586d"
           environment:
-            # Override default URLs that point to example.com
+            # Configure Studio for self-hosted mode (not SaaS mode)
             SUPABASE_PUBLIC_URL: http://localhost:31380
-            SUPABASE_URL: http://localhost:31380
-            STUDIO_PG_META_URL: http://supabase-supabase-meta:8080
             NEXT_PUBLIC_SUPABASE_URL: http://localhost:31380
+            NEXT_PUBLIC_SUPABASE_ANON_KEY: ""
+            NEXT_PUBLIC_SUPABASE_STORAGE_URL: http://localhost:31380/storage/v1
+            # Self-hosted mode configuration
+            STUDIO_PG_META_URL: http://supabase-supabase-meta:8080
+            SUPABASE_REST_URL: http://localhost:31380/rest/v1
+            SUPABASE_STORAGE_URL: http://localhost:31380/storage/v1
+            SUPABASE_AUTH_URL: http://localhost:31380/auth/v1
+            # Enable logs and set backend
             NEXT_PUBLIC_ENABLE_LOGS: "true"
             NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
-            # Additional storage-specific environment variables
-            NEXT_PUBLIC_SUPABASE_STORAGE_URL: http://localhost:31380/storage/v1
-            SUPABASE_STORAGE_URL: http://localhost:31380/storage/v1
+            # Disable SaaS features for self-hosted mode
+            NEXT_PUBLIC_IS_PLATFORM: "false"
           extraEnv:
             - name: HOST
               value: 0.0.0.0
