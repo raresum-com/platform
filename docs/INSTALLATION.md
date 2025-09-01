@@ -25,6 +25,12 @@ docker --version && kubectl version --client && k3d version && helm version && m
 
 Creates a local k3d cluster, installs Argo CD, and applies the dev-local overlay (MinIO + Supabase + helpers).
 
+Quick start:
+
+```bash
+make up && make creds
+```
+
 Steps:
 
 1. Clone repo and enter directory
@@ -34,13 +40,19 @@ git clone https://github.com/raresum-com/platform.git
 cd platform
 ```
 
-2. Bootstrap local environment
+2. Bootstrap local environment (idempotent)
 
 ```bash
-make dev
+make up
 ```
 
-3. Open UIs and ports (each in its own terminal)
+3. Print access URLs and credentials
+
+```bash
+make creds
+```
+
+4. Open UIs and ports (each in its own terminal)
 
 ```bash
 # Argo CD (self‑signed TLS). Login user: admin
@@ -61,7 +73,7 @@ make supabase-ui            # http://localhost:3333
 Default local credentials:
 
 - MinIO: user `minioadmin`, password `minioadmin123`, bucket `dev-local`
-- Supabase DB: `supabase_admin` / `supabase_pass`
+- Supabase DB: user `postgres`, password `supabase_pass`, database `postgres`
 - JWT secrets are placeholder values in dev-local; do not reuse in real environments.
 
 Argo CD login:

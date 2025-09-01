@@ -36,6 +36,8 @@ help:
 	@echo "make argo-ui          # Argo CD UI -> http://localhost:8080 (port-forward)"
 	@echo "make apply-root       # Root Application'ı uygula (overlays/dev-local)"
 	@echo "make dev              # k3d + Argo CD + Root App (mini-prod)"
+	@echo "make up               # Idempotent: start/create k3d + Argo CD + Root App"
+	@echo "make creds            # Yerel erişim URL'leri ve kimlik bilgilerini yazdır"
 
 .PHONY: list-supabase
 list-supabase:
@@ -147,3 +149,45 @@ dev: k3d-create argocd-install apply-root
 	@echo " - Argo CD: make argo-ui (8080)"
 	@echo " - MinIO: make minio-ui (9090), make minio-api (9000)"
 	@echo " - Supabase: make supabase-ui (3333), make supabase-db (5432)"
+
+# ===== One-shot bootstrap & helper outputs =====
+.PHONY: up
+up:
+	@which k3d >/dev/null || (echo "[ERR] k3d yüklü değil. bkz: https://k3d.io" && exit 1)
+	@which kubectl >/dev/null || (echo "[ERR] kubectl yüklü değil." && exit 1)
+	@which helm >/dev/null || (echo "[ERR] helm yüklü değil." && exit 1)
+	@echo "[INFO] k3d cluster durumu kontrol ediliyor: $(K3D_CLUSTER_NAME)"
+	@if k3d cluster list 2>/dev/null | tail -n +2 | awk '{print $$1}' | grep -qx '$(K3D_CLUSTER_NAME)'; then \
+		echo "[INFO] Cluster mevcut. Başlatılıyor..."; \
+		k3d cluster start $(K3D_CLUSTER_NAME) || true; \
+	else \
+		$(MAKE) k3d-create; \
+	fi
+	@$(MAKE) argocd-install
+	@$(MAKE) apply-root
+	@echo "[OK] Kurulum tamam. Hızlı erişim için: make creds"
+
+.PHONY: creds
+creds:
+	@echo "[URL]  Argo CD:           https://localhost:8080"
+	@echo "[URL]  Supabase Studio:   http://localhost:$(SUPABASE_NODEPORT)"
+	@echo "[URL]  Supabase Gateway:  http://localhost:31380"
+	@echo "[URL]  MinIO Console:     http://localhost:$(MINIO_UI_LOCAL_PORT)"
+	@echo
+	@echo "[CREDS] Argo CD: user=admin pass=$$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' 2>/dev/null | base64 -d || true)"
+	@echo
+	@if kubectl -n $(MINIO_NS) get secret minio >/dev/null 2>&1; then \
+		MU=$$(kubectl -n $(MINIO_NS) get secret minio -o jsonpath='{.data.root-user}' | base64 -d); \
+		MP=$$(kubectl -n $(MINIO_NS) get secret minio -o jsonpath='{.data.root-password}' | base64 -d); \
+		echo "[CREDS] MinIO:   user=$$MU pass=$$MP"; \
+	else \
+		echo "[CREDS] MinIO:   user=minioadmin pass=minioadmin123"; \
+	fi
+	@SDU=$$(kubectl -n $(SUPA_NS) get secret supabase-db -o jsonpath='{.data.username}' 2>/dev/null | base64 -d); \
+	 SPD=$$(kubectl -n $(SUPA_NS) get secret supabase-db -o jsonpath='{.data.password}' 2>/dev/null | base64 -d); \
+	 SDB=$$(kubectl -n $(SUPA_NS) get secret supabase-db -o jsonpath='{.data.database}' 2>/dev/null | base64 -d); \
+	 echo "[CREDS] SupaDB:  user=$$SDU pass=$$SPD db=$$SDB host=localhost port=$(SUPABASE_DB_LOCAL_PORT)";
+	@ANON=$$(kubectl -n $(SUPA_NS) get secret supabase-jwt -o jsonpath='{.data.anonKey}' 2>/dev/null | base64 -d); \
+	 SR=$$(kubectl -n $(SUPA_NS) get secret supabase-jwt -o jsonpath='{.data.serviceRoleKey}' 2>/dev/null | base64 -d); \
+	 echo "[CREDS] SupaJWT: anonKey=$$ANON"; \
+	 echo "[CREDS] SupaJWT: serviceRoleKey=$$SR";
