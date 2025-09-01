@@ -39,8 +39,8 @@ spec:
             tag: "15.1.0.147"
           persistence:
             enabled: true
-            existingClaim: supabase-supabase-db-pvc
-            storageClass: local-path  # Match existing PVC storage class
+            size: 8Gi
+            storageClass: local-path
           environment:
             POSTGRES_USER: postgres
             POSTGRES_DB: postgres
@@ -56,7 +56,7 @@ spec:
             - name: HOSTNAME
               value: 0.0.0.0
             - name: SUPABASE_PUBLIC_URL
-              value: http://localhost:31333
+              value: http://localhost:31380
             - name: SUPABASE_URL
               value: http://supabase-gateway
             - name: STUDIO_PG_META_URL
@@ -72,6 +72,8 @@ spec:
                 secretKeyRef:
                   name: supabase-jwt
                   key: anonKey
+            - name: SUPABASE_API_URL
+              value: http://localhost:31380
 
         # REST (PostgREST)
         rest:
@@ -105,17 +107,25 @@ spec:
             tag: "v0.46.4"
           environment:
             STORAGE_BACKEND: s3
-            STORAGE_S3_ENDPOINT: http://minio.tools.svc.cluster.local:9000
-            STORAGE_S3_REGION: us-east-1
-            STORAGE_S3_FORCE_PATH_STYLE: "true"
+            # S3 Configuration
+            GLOBAL_S3_ENDPOINT: http://minio.tools.svc.cluster.local:9000
+            GLOBAL_S3_PROTOCOL: http
+            GLOBAL_S3_FORCE_PATH_STYLE: "true"
             GLOBAL_S3_BUCKET: dev-local
+            REGION: us-east-1
+            AWS_DEFAULT_REGION: us-east-1
             # Required environment variables for storage service
             POSTGREST_URL: http://supabase-supabase-rest:3000
             PGOPTIONS: "-c search_path=storage,public"
             DATABASE_URL: postgres://postgres:supabase_pass@supabase-supabase-db:5432/postgres
             FILE_SIZE_LIMIT: "52428800"
+            STORAGE_FILE_SIZE_LIMIT: "52428800"
             TENANT_ID: stub
-            REGION: us-east-1
+            PROJECT_REF: stub
+            # Enable storage features
+            STORAGE_S3_REGION: us-east-1
+            STORAGE_S3_ENDPOINT: http://minio.tools.svc.cluster.local:9000
+            STORAGE_S3_FORCE_PATH_STYLE: "true"
           persistence:
             enabled: false
 

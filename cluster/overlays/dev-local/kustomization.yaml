@@ -13,4 +13,4 @@ resources:
   # - ./apps/kong-nodeport.yaml  # Disabled since Kong is disabled
   - ./apps/gateway.yaml
   - ./apps/gateway-nodeport.yaml
-  - ./apps/supabase-db-pvc.yaml
+  # - ./apps/supabase-db-pvc.yaml  # Let Helm manage PVC to avoid conflicts
