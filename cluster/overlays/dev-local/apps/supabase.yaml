@@ -32,13 +32,14 @@ spec:
               keyId: keyId
               accessKey: accessKey
 
-        # Database (dev: ephemeral) and tag pin
+        # Database (enabled persistence for dev-local) and tag pin
         db:
           enabled: true
           image:
             tag: "15.1.0.147"
           persistence:
-            enabled: false
+            enabled: true
+            existingClaim: supabase-supabase-db-pvc
           environment:
             POSTGRES_USER: postgres
             POSTGRES_DB: postgres
@@ -107,6 +108,17 @@ spec:
             GLOBAL_S3_PROTOCOL: http
             GLOBAL_S3_FORCE_PATH_STYLE: true
             AWS_DEFAULT_REGION: dev
+            GLOBAL_S3_BUCKET: dev-local
+            AWS_ACCESS_KEY_ID:
+              valueFrom:
+                secretKeyRef:
+                  name: supabase-s3
+                  key: keyId
+            AWS_SECRET_ACCESS_KEY:
+              valueFrom:
+                secretKeyRef:
+                  name: supabase-s3
+                  key: accessKey
           persistence:
             enabled: false
 

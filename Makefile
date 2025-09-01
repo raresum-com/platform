@@ -38,6 +38,8 @@ help:
 	@echo "make dev              # k3d + Argo CD + Root App (mini-prod)"
 	@echo "make up               # Idempotent: start/create k3d + Argo CD + Root App"
 	@echo "make creds            # Yerel erişim URL'leri ve kimlik bilgilerini yazdır"
+	@echo "make minio-ui-up      # MinIO Console port-forward'ı arka planda başlat (9090->9001)"
+	@echo "make minio-ui-down    # MinIO Console port-forward'ı durdur"
 
 .PHONY: list-supabase
 list-supabase:
@@ -93,11 +95,25 @@ supabase-db:
 
 .PHONY: minio-api
 minio-api:
-	kubectl -n $(MINIO_NS) port-forward svc/minio $(MINIO_API_LOCAL_PORT):$(MINIO_API_TARGET)
+	kubectl -n $(MINIO_NS) port-forward --address 127.0.0.1 svc/minio $(MINIO_API_LOCAL_PORT):$(MINIO_API_TARGET)
 
 .PHONY: minio-ui
 minio-ui:
-	kubectl -n $(MINIO_NS) port-forward svc/minio $(MINIO_UI_LOCAL_PORT):$(MINIO_UI_TARGET)
+	kubectl -n $(MINIO_NS) port-forward --address 127.0.0.1 svc/minio $(MINIO_UI_LOCAL_PORT):$(MINIO_UI_TARGET)
+
+.PHONY: minio-ui-up
+minio-ui-up:
+	@echo "[INFO] MinIO Console port-forward başlatılıyor (localhost:$(MINIO_UI_LOCAL_PORT) -> svc/minio:$(MINIO_UI_TARGET))";
+	-@lsof -ti tcp:$(MINIO_UI_LOCAL_PORT) | xargs -r kill;
+	nohup kubectl -n $(MINIO_NS) port-forward --address 127.0.0.1 svc/minio $(MINIO_UI_LOCAL_PORT):$(MINIO_UI_TARGET) >/tmp/minio-ui-pf.log 2>&1 & echo $$! > /tmp/minio-ui-pf.pid;
+	@sleep 1; echo "[OK] Çalışıyor. Log: /tmp/minio-ui-pf.log PID: $$(cat /tmp/minio-ui-pf.pid)";
+
+.PHONY: minio-ui-down
+minio-ui-down:
+	@echo "[INFO] MinIO Console port-forward sonlandırılıyor";
+	-@if [ -f /tmp/minio-ui-pf.pid ]; then kill $$(cat /tmp/minio-ui-pf.pid) 2>/dev/null || true; rm -f /tmp/minio-ui-pf.pid; fi;
+	-@lsof -ti tcp:$(MINIO_UI_LOCAL_PORT) | xargs -r kill;
+	@echo "[OK] Durduruldu."
 
 # ===== Dev bootstrap (k3d + Argo CD + Root App) =====
 .PHONY: k3d-create
