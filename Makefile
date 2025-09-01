@@ -127,7 +127,9 @@ k3d-create:
 	  --port 443:443@loadbalancer \
 	  --port 31333:31333@server:0 \
 	  --port 31380:31380@server:0 \
-	  --port 31300:31300@server:0
+	  --port 31300:31300@server:0 \
+	  --port 31301:31301@server:0 \
+	  --port 31302:31302@server:0
 	@kubectl cluster-info
 
 .PHONY: check-kubectl-skew
@@ -188,8 +190,8 @@ creds:
 	@echo "[URL]  Argo CD:           https://localhost:8080"
 	@echo "[URL]  Supabase Studio:   http://localhost:$(SUPABASE_NODEPORT)"
 	@echo "[URL]  Supabase Gateway:  http://localhost:31380"
-	@echo "[URL]  MinIO Console:     http://localhost:31900"
-	@echo "[URL]  MinIO S3 API:      http://localhost:31901"
+	@echo "[URL]  MinIO Console:     http://localhost:31302"
+	@echo "[URL]  MinIO S3 API:      http://localhost:31301"
 	@echo
 	@echo "[CREDS] Argo CD: user=admin pass=$$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' 2>/dev/null | base64 -d || true)"
 	@echo

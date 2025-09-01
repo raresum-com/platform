@@ -16,7 +16,7 @@ spec:
     - name: minio-console
       port: 9001
       targetPort: 9001
-      nodePort: 31900  # MinIO Console UI
+      nodePort: 31302  # MinIO Console UI - use available port
 ---
 apiVersion: v1
 kind: Service
@@ -35,4 +35,4 @@ spec:
     - name: minio-api
       port: 9000
       targetPort: 9000
-      nodePort: 31901  # MinIO S3 API
+      nodePort: 31301  # MinIO S3 API - use available port

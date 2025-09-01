@@ -40,6 +40,7 @@ spec:
           persistence:
             enabled: true
             existingClaim: supabase-supabase-db-pvc
+            storageClass: local-path  # Match existing PVC storage class
           environment:
             POSTGRES_USER: postgres
             POSTGRES_DB: postgres
