@@ -64,6 +64,9 @@ spec:
             NEXT_PUBLIC_SUPABASE_URL: http://localhost:31380
             NEXT_PUBLIC_ENABLE_LOGS: "true"
             NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
+            # Additional storage-specific environment variables
+            NEXT_PUBLIC_SUPABASE_STORAGE_URL: http://localhost:31380/storage/v1
+            SUPABASE_STORAGE_URL: http://localhost:31380/storage/v1
           extraEnv:
             - name: HOST
               value: 0.0.0.0
