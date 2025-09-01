@@ -188,7 +188,8 @@ creds:
 	@echo "[URL]  Argo CD:           https://localhost:8080"
 	@echo "[URL]  Supabase Studio:   http://localhost:$(SUPABASE_NODEPORT)"
 	@echo "[URL]  Supabase Gateway:  http://localhost:31380"
-	@echo "[URL]  MinIO Console:     http://localhost:$(MINIO_UI_LOCAL_PORT)"
+	@echo "[URL]  MinIO Console:     http://localhost:31900"
+	@echo "[URL]  MinIO S3 API:      http://localhost:31901"
 	@echo
 	@echo "[CREDS] Argo CD: user=admin pass=$$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' 2>/dev/null | base64 -d || true)"
 	@echo

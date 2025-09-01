@@ -4,12 +4,13 @@ resources:
   - ./ns.yaml
   - ./apps/supabase.yaml
   - ./apps/minio.yaml
+  - ./apps/minio-nodeport.yaml
   - ./apps/supabase-secrets.yaml
   - ./apps/supabase-s3-secret.yaml
   - ./apps/supabase-smtp-secret.yaml
   - ./apps/studio-nodeport.yaml
   - ./apps/pgmeta.yaml
-  - ./apps/kong-nodeport.yaml
+  # - ./apps/kong-nodeport.yaml  # Disabled since Kong is disabled
   - ./apps/gateway.yaml
   - ./apps/gateway-nodeport.yaml
   - ./apps/supabase-db-pvc.yaml
