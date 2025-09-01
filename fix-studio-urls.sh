@@ -14,7 +14,7 @@ kubectl patch deployment supabase-supabase-studio -n supabase --type='json' -p='
       {"name": "STUDIO_DEFAULT_PROJECT", "value": "Default Project"},
       {"name": "STUDIO_PORT", "value": "3000"},
       {"name": "SUPABASE_PUBLIC_URL", "value": "http://localhost:31380"},
-      {"name": "STUDIO_PG_META_URL", "value": "http://localhost:31380/pg-meta"},
+      {"name": "STUDIO_PG_META_URL", "value": "http://supabase-supabase-meta:8080"},
       {"name": "SUPABASE_URL", "value": "http://localhost:31380"},
       {"name": "NEXT_PUBLIC_SUPABASE_URL", "value": "http://localhost:31380"},
       {"name": "SUPABASE_ANON_KEY", "valueFrom": {"secretKeyRef": {"key": "anonKey", "name": "supabase-jwt"}}},

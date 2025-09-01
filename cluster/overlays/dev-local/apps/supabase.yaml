@@ -60,7 +60,7 @@ spec:
             # Override default URLs that point to example.com
             SUPABASE_PUBLIC_URL: http://localhost:31380
             SUPABASE_URL: http://localhost:31380
-            STUDIO_PG_META_URL: http://localhost:31380/pg-meta
+            STUDIO_PG_META_URL: http://supabase-supabase-meta:8080
             NEXT_PUBLIC_SUPABASE_URL: http://localhost:31380
             NEXT_PUBLIC_ENABLE_LOGS: "true"
             NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
