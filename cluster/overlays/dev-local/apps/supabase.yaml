@@ -105,6 +105,19 @@ spec:
           enabled: true
           image:
             tag: "v0.46.4"
+          # Use S3 backend and credentials from secret
+          s3:
+            enabled: true
+            endpoint: http://minio.tools.svc.cluster.local:9000
+            region: us-east-1
+            bucket: dev-local
+            forcePathStyle: true
+            accessKeyId:
+              secretRef: supabase-s3
+              secretRefKey: keyId
+            secretAccessKey:
+              secretRef: supabase-s3
+              secretRefKey: accessKey
           environment:
             STORAGE_BACKEND: s3
             # S3 Configuration
@@ -114,14 +127,18 @@ spec:
             GLOBAL_S3_BUCKET: dev-local
             REGION: us-east-1
             AWS_DEFAULT_REGION: us-east-1
-            # Database configuration - use postgres user instead of supabase_storage_admin
+            # Database configuration - override template variables to use postgres
             DB_HOST: supabase-supabase-db
             DB_PORT: "5432"
-            DB_USER: postgres
+            DB_USER: postgres  
             DB_NAME: postgres
             DB_DRIVER: postgres
             DB_SSL: disable
-            DATABASE_URL: postgres://postgres:supabase_pass@supabase-supabase-db:5432/postgres
+            # Override the templated DATABASE_URL that causes issues
+            DATABASE_URL: postgres://postgres:supabase_pass@supabase-supabase-db:5432/postgres?search_path=storage,public&sslmode=disable
+            # Override password environment variables
+            DB_PASSWORD: supabase_pass
+            DB_PASSWORD_ENC: supabase_pass
             # Required environment variables for storage service
             POSTGREST_URL: http://supabase-supabase-rest:3000
             PGOPTIONS: "-c search_path=storage,public"
@@ -135,9 +152,7 @@ spec:
             STORAGE_S3_REGION: us-east-1
             STORAGE_S3_ENDPOINT: http://minio.tools.svc.cluster.local:9000
             STORAGE_S3_FORCE_PATH_STYLE: "true"
-            # AWS credentials for MinIO
-            AWS_ACCESS_KEY_ID: minioadmin
-            AWS_SECRET_ACCESS_KEY: minioadmin123
+            # AWS credentials will be injected by Helm chart S3 configuration
           persistence:
             enabled: false
 
