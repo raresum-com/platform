@@ -16,7 +16,11 @@ spec:
         resources:
           requests: { cpu: 100m, memory: 256Mi }
         persistence:
-          size: 5Gi
+          enabled: true
+          size: 20Gi
+          storageClass: local-path
+          accessModes:
+            - ReadWriteOnce
         auth:
           rootUser: "minioadmin"
           rootPassword: "minioadmin123"

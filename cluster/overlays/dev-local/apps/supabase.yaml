@@ -43,8 +43,10 @@ spec:
             tag: "15.1.0.147"
           persistence:
             enabled: true
-            size: 8Gi
+            size: 20Gi
             storageClass: local-path
+            accessModes:
+              - ReadWriteOnce
           environment:
             POSTGRES_USER: postgres
             POSTGRES_DB: postgres
