@@ -61,7 +61,11 @@ make argo-ui
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d; echo
 
 # MinIO Console / API
-make minio-ui
+# Console (background): opens http://127.0.0.1:9090
+make minio-ui-up
+# Stop later:
+make minio-ui-down
+# API (S3): http://localhost:9000
 make minio-api
 
 # Supabase Studio (NodePort is preferred for stability)
@@ -69,6 +73,10 @@ make supabase-ui-nodeport   # http://localhost:31333
 # Optional port-forward helper (may be flaky if kubectl version skew exists)
 make supabase-ui            # http://localhost:3333
 ```
+
+Notes:
+
+- MinIO Console is bound to IPv4 localhost to avoid macOS IPv6 port-forward issues. If `http://localhost:9090` does not open, use `http://127.0.0.1:9090`.
 
 Default local credentials:
 
@@ -92,6 +100,21 @@ Troubleshooting (local):
   # If skew > 1 minor version, use NodePort targets or align versions
   ```
 - Ports busy: `make stop-ports`
+- MinIO Console not loading:
+  - Open `http://127.0.0.1:9090` (IPv4 explicitly).
+  - Restart the helper:
+    ```bash
+    make minio-ui-down
+    make minio-ui-up
+    ```
+  - Check the port-forward logs:
+    ```bash
+    tail -n 100 /tmp/minio-ui-pf.log
+    ```
+  - If issues persist, verify kubectl skew and prefer NodePorts when skew > 1 minor:
+    ```bash
+    make check-kubectl-skew
+    ```
 - Supabase Storage check via gateway (service role):
   ```bash
   SR=$(kubectl -n supabase get secret supabase-jwt -o jsonpath='{.data.serviceRoleKey}' | base64 -d)
