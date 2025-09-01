@@ -12,6 +12,10 @@ spec:
     helm:
       releaseName: supabase
       values: |
+        # API Configuration
+        api:
+          external_url: http://localhost:31380
+
         # Secrets: reference existing secrets we create in overlay
         secret:
           jwt:
@@ -61,19 +65,17 @@ spec:
               value: http://supabase-gateway
             - name: STUDIO_PG_META_URL
               value: http://localhost:31380/pg-meta
+            - name: NEXT_PUBLIC_SUPABASE_URL
+              value: http://localhost:31380
             - name: NEXT_PUBLIC_ENABLE_LOGS
               value: "true"
             - name: NEXT_ANALYTICS_BACKEND_PROVIDER
               value: postgres
-            - name: NEXT_PUBLIC_SUPABASE_URL
-              value: http://localhost:31380
             - name: NEXT_PUBLIC_SUPABASE_ANON_KEY
               valueFrom:
                 secretKeyRef:
                   name: supabase-jwt
                   key: anonKey
-            - name: SUPABASE_API_URL
-              value: http://localhost:31380
 
         # REST (PostgREST)
         rest:
