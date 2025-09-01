@@ -19,6 +19,11 @@ make up
 echo "⏳ Waiting for services to be ready..."
 kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
 kubectl wait --for=condition=available --timeout=300s deployment/minio -n tools
+kubectl wait --for=condition=available --timeout=300s deployment/supabase-supabase-studio -n supabase
+
+# Fix Studio URLs to prevent example.com CORS errors
+echo "🔧 Fixing Supabase Studio URLs..."
+./fix-studio-urls.sh > /dev/null 2>&1
 
 # Start port-forwards
 echo "🔗 Setting up port-forwards..."
