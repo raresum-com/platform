@@ -56,23 +56,19 @@ spec:
           enabled: true
           image:
             tag: "20240326-5e5586d"
+          environment:
+            # Override default URLs that point to example.com
+            SUPABASE_PUBLIC_URL: http://localhost:31380
+            SUPABASE_URL: http://supabase-gateway
+            STUDIO_PG_META_URL: http://localhost:31380/pg-meta
+            NEXT_PUBLIC_SUPABASE_URL: http://localhost:31380
+            NEXT_PUBLIC_ENABLE_LOGS: "true"
+            NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
           extraEnv:
             - name: HOST
               value: 0.0.0.0
             - name: HOSTNAME
               value: 0.0.0.0
-            - name: SUPABASE_PUBLIC_URL
-              value: http://localhost:31380
-            - name: SUPABASE_URL
-              value: http://supabase-gateway
-            - name: STUDIO_PG_META_URL
-              value: http://localhost:31380/pg-meta
-            - name: NEXT_PUBLIC_SUPABASE_URL
-              value: http://localhost:31380
-            - name: NEXT_PUBLIC_ENABLE_LOGS
-              value: "true"
-            - name: NEXT_ANALYTICS_BACKEND_PROVIDER
-              value: postgres
             - name: NEXT_PUBLIC_SUPABASE_ANON_KEY
               valueFrom:
                 secretKeyRef:
