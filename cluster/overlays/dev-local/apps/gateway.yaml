@@ -13,34 +13,71 @@ data:
         # CORS for browser requests hitting NodePort (dev-local)
         location / {
           if ($request_method = OPTIONS) {
-            add_header 'Access-Control-Allow-Origin' '*';
+            add_header 'Access-Control-Allow-Origin' $http_origin;
             add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
-            add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type, apikey, x-client-info';
+            add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type, apikey, x-client-info, x-upsert';
+            add_header 'Vary' 'Origin';
             add_header 'Access-Control-Max-Age' 3600;
             return 204;
           }
         }
         # REST
         location /rest/v1/ {
-          add_header 'Access-Control-Allow-Origin' '*' always;
+          if ($request_method = OPTIONS) {
+            add_header 'Access-Control-Allow-Origin' $http_origin;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
+            add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type, apikey, x-client-info, x-upsert';
+            add_header 'Vary' 'Origin';
+            add_header 'Access-Control-Max-Age' 3600;
+            return 204;
+          }
+          add_header 'Access-Control-Allow-Origin' $http_origin always;
+          add_header 'Vary' 'Origin' always;
           add_header 'Access-Control-Allow-Credentials' 'true' always;
           proxy_pass http://supabase-supabase-rest:3000/;
         }
         # Auth
         location /auth/v1/ {
-          add_header 'Access-Control-Allow-Origin' '*' always;
+          if ($request_method = OPTIONS) {
+            add_header 'Access-Control-Allow-Origin' $http_origin;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
+            add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type, apikey, x-client-info, x-upsert';
+            add_header 'Vary' 'Origin';
+            add_header 'Access-Control-Max-Age' 3600;
+            return 204;
+          }
+          add_header 'Access-Control-Allow-Origin' $http_origin always;
+          add_header 'Vary' 'Origin' always;
           add_header 'Access-Control-Allow-Credentials' 'true' always;
           proxy_pass http://supabase-supabase-auth:9999/;
         }
         # Storage
         location /storage/v1/ {
-          add_header 'Access-Control-Allow-Origin' '*' always;
+          if ($request_method = OPTIONS) {
+            add_header 'Access-Control-Allow-Origin' $http_origin;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
+            add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type, apikey, x-client-info, x-upsert';
+            add_header 'Vary' 'Origin';
+            add_header 'Access-Control-Max-Age' 3600;
+            return 204;
+          }
+          add_header 'Access-Control-Allow-Origin' $http_origin always;
+          add_header 'Vary' 'Origin' always;
           add_header 'Access-Control-Allow-Credentials' 'true' always;
           proxy_pass http://supabase-supabase-storage:5000/;
         }
         # PgMeta
         location /pg-meta/ {
-          add_header 'Access-Control-Allow-Origin' '*' always;
+          if ($request_method = OPTIONS) {
+            add_header 'Access-Control-Allow-Origin' $http_origin;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
+            add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type, apikey, x-client-info, x-upsert';
+            add_header 'Vary' 'Origin';
+            add_header 'Access-Control-Max-Age' 3600;
+            return 204;
+          }
+          add_header 'Access-Control-Allow-Origin' $http_origin always;
+          add_header 'Vary' 'Origin' always;
           add_header 'Access-Control-Allow-Credentials' 'true' always;
           proxy_pass http://postgres-meta:8080/;
         }
